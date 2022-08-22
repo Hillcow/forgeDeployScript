@@ -57,7 +57,7 @@ else
   printf '\nError: .env file is missing at %s.' "$ENV_FILE" && exit 1
 fi
 
-printf '\nℹ️ Manage old ./storage/.log files\n'
+printf '\nℹ️ Copy old ./storage/.log files\n'
 cd ./storage/logs
 AMOUNT_LOG_FILES=$(find ~/$DOMAIN/current/storage/logs -maxdepth 1 -mindepth 1 -type f -name "*.log" | wc -l)
 if [ "$AMOUNT_LOG_FILES" != 0 ]; then
@@ -65,6 +65,7 @@ if [ "$AMOUNT_LOG_FILES" != 0 ]; then
   for filename in *.log; do
     PREVIOUS_LOG=$filename
     if [[ $filename != *"_previous.log" ]]; then
+      PREVIOUS_LOG="${filename%.log}"_previous.log
       if [ -f "$PREVIOUS_LOG" ]; then
         printf 'Appending old log file %s content into %s.\n' "$filename" "$PREVIOUS_LOG"
         cat "$filename" >> "$PREVIOUS_LOG"
@@ -73,7 +74,6 @@ if [ "$AMOUNT_LOG_FILES" != 0 ]; then
         printf 'Rename old log file to %s.\n' "${filename%.log}"_previous.log
         mv -- "$filename" "${filename%.log}"_previous.log
       fi
-      PREVIOUS_LOG="${filename%.log}"_previous.log
     fi
     BEFORE=$(wc -l < "$PREVIOUS_LOG")
     if [ "$BEFORE" -gt "$AMOUNT_KEEP_PREVIOUS_LOG_LINES" ]; then
@@ -119,6 +119,9 @@ if [ -f artisan ]; then
 
   printf '\nℹ️ Database Migrations\n'
   $FORGE_PHP artisan migrate --force
+
+  printf '\nℹ️ Restart Horizon Queue Workers\n'
+  $FORGE_PHP artisan horizon:terminate
 else
   printf '\nError: "%s artisan" missing.' "$FORGE_PHP" && exit 1
 fi
@@ -129,9 +132,6 @@ if [ -d ~/$DOMAIN/current ] && [ ! -L ~/$DOMAIN/current ]; then
   rm -rf ~/$DOMAIN/current
 fi
 ln -s -n -f -T "$DEPLOYMENT_DIRECTORY" ~/$DOMAIN/current
-
-printf '\nℹ️ Restart Horizon Queue Workers\n'
-$FORGE_PHP artisan horizon:terminate
 
 printf '\nℹ️ Restart PHP FPM\n'
 ( flock -w 10 9 || exit 1
