@@ -4,13 +4,13 @@ Zero downtime deployment script for Laravel Forge using symlinks that manages re
 ### Setup
 1. On Laravel Forge at Site/Meta change your `Web Directory` to `/current/public`
 2. ssh into site dir
-3. Only if you know what you're doing: run the following command that will DELETE EVEVERYTHING of your website EXCEPT your environment file and storage directory:  `find . ! \( -path "./.env" -o -path "./storage*" \) -delete && mkdir current && mv .env ./current/.env`
+3. Only if you know what you're doing: run the following command that will DELETE EVEVERYTHING of your website EXCEPT your environment file and storage directory:  `find . ! \( -path "./.env" -o -path "./storage*" \) -delete && mkdir -p current && mv .env ./current/.env`
 4. upload other possible static folders into site root dir
 5. insert deployment script from `./forgeZeroDowntimeDeployScript.sh` into deploy script on Forge at Site/App.
 6. Configure the setup variables to your liking:
     - `DOMAIN` = your site name
     - `PROJECT_REPO` = your GIT repo
-    - `AMOUNT_KEEP_RELEASES` = any amount of successful releases that you would like to keep at any point of time. Older ones will be deleted, if you have more than that.
+    - `AMOUNT_KEEP_RELEASES` = any amount of successful releases that you would like to keep at any point of time. Older ones will be deleted after each successful deployment, if you have more than that. `./current/.successes` keeps track of which release was successful (e.g. script ran through at least until symlinking the built release to the `current` dir).
     - `AMOUNT_KEEP_PREVIOUS_LOG_LINES` = On each deployment, all Laravel log files will be put into `*_previous.log` files, so that you have a fresh empty log file on each release. Here you can define the amount of lines that you would like to keep from each previous log file.
     - `STATIC_DIRS` = if you host files (eg. images) yourself, put in paths for symlinking these directories.
 
