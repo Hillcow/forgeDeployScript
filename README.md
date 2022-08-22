@@ -1,4 +1,4 @@
-# forgeDeployScript
+# Laravel Forge Zero Downtime Deploy Script
 Zero downtime deployment script for Laravel Forge using symlinks that manages releases, static directories and log files. Only deploys if script runs through. Keep x amount of previous successful releases.
 
 ### Setup
